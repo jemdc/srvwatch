@@ -12,7 +12,7 @@ import { api } from "./api.js";
 import {
   createGauge, updateGauge,
   createLineChart, updateLineChart,
-  createPowerChart,
+  createPowerChart, createTempChart,
   createSparkline, updateSparkline,
   destroyAll,
 } from "./charts.js";
@@ -277,10 +277,7 @@ function initDetailCharts() {
 
   createPowerChart("chart-gpu-power");
 
-  createLineChart("chart-gpu-temp",
-    [{ name: "GPU Temp", color: "#f85149" }],
-    "°C", null
-  );
+  createTempChart("chart-gpu-temp");
 }
 
 // ── Live polling ──────────────────────────────────────────────────────────────
@@ -409,21 +406,35 @@ async function loadHistory() {
   const id    = state.selectedId;
   const range = state.selectedRange;
 
+  // ── CPU + Memory (always fetch) ──────────────────────────────────────────
   try {
-    // System (CPU + MEM)
     const sys = await api.history(id, range, -1);
-    updateLineChart("chart-cpumem", sys.data, ["cpu_pct", "mem_pct"]);
-
-    // GPU 0 (vRAM + util)
-    const gpuVram = await api.history(id, range, 0);
-    if (gpuVram.data.length) {
-      updateLineChart("chart-gpu-vram",  gpuVram.data, ["vram_pct", "gpu_util_pct"]);
-      updateLineChart("chart-gpu-power", gpuVram.data, ["gpu_power_w"]);
-      updateLineChart("chart-gpu-temp",  gpuVram.data, ["gpu_temp_c"]);
-      $("#gpu-chart-panel") && ($("#gpu-chart-panel").style.opacity = "1");
+    if (sys.data?.length) {
+      updateLineChart("chart-cpumem", sys.data, ["cpu_pct", "mem_pct"]);
+    } else {
+      console.info("No system history yet for", id, range);
     }
   } catch (err) {
-    console.warn("History load failed:", err);
+    console.warn("System history fetch failed:", err);
+  }
+
+  // ── GPU (only if this server has GPUs) ───────────────────────────────────
+  const srv = state.servers.find((s) => s.id === id);
+  if (!srv || !srv.gpu_count) return;
+
+  try {
+    const gpuData = await api.history(id, range, 0);
+    if (gpuData.data?.length) {
+      updateLineChart("chart-gpu-vram",  gpuData.data, ["vram_pct", "gpu_util_pct"]);
+      updateLineChart("chart-gpu-power", gpuData.data, ["gpu_power_w"]);
+      updateLineChart("chart-gpu-temp",  gpuData.data, ["gpu_temp_c"]);
+      const panel = document.getElementById("gpu-chart-panel");
+      if (panel) panel.style.opacity = "1";
+    } else {
+      console.info("No GPU history yet for", id, range);
+    }
+  } catch (err) {
+    console.warn("GPU history fetch failed:", err);
   }
 }
 
