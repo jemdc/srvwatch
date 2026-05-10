@@ -3,7 +3,7 @@
 # simple-server-monitor Agent — One-line installer for Ubuntu 20.04 / 22.04 / 24.04
 #
 # Basic usage (run as root or with sudo):
-#   curl -fsSL https://raw.githubusercontent.com/jemdc/simple-server-monitor/master/agent/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/jemdc/srvwatch/master/agent/install.sh | sudo bash
 #
 # With options:
 #   SRVWATCH_SECRET=mysecret \
@@ -13,7 +13,7 @@
 # =============================================================================
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/jemdc/simple-server-monitor}"
+REPO_URL="${REPO_URL:-https://github.com/jemdc/srvwatch}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/srvwatch-agent}"
 SERVICE_USER="${SERVICE_USER:-srvwatch}"
 SRVWATCH_PORT="${SRVWATCH_PORT:-9100}"
