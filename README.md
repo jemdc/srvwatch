@@ -27,7 +27,7 @@ Tracks CPU, memory, and GPU metrics (NVIDIA + AMD) with live gauges and historic
 
 ```bash
 SRVWATCH_SECRET=changeme SRVWATCH_LABEL="gpu-rig-01" \
-  curl -fsSL https://raw.githubusercontent.com/YOUR_USER/srvwatch/main/agent/install.sh | sudo bash
+  curl -fsSL https://raw.githubusercontent.com/jemdc/simple-server-monitor/master/agent/install.sh | sudo bash
 ```
 
 ### 2. Start the central server
