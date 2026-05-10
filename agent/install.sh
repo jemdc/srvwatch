@@ -3,7 +3,7 @@
 # SRVWatch Agent — One-line installer for Ubuntu 20.04 / 22.04 / 24.04
 #
 # Basic usage (run as root or with sudo):
-#   curl -fsSL https://raw.githubusercontent.com/YOUR_USER/srvwatch/main/agent/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/jemdc/simple-server-monitor/master/agent/install.sh | sudo bash
 #
 # With options:
 #   SRVWATCH_SECRET=mysecret \
