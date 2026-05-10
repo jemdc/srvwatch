@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SRVWatch — Server Metrics</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230d1117'/><rect x='4' y='8' width='24' height='5' rx='2' fill='%2358a6ff'/><rect x='4' y='15' width='24' height='5' rx='2' fill='%233fb950'/><rect x='4' y='22' width='24' height='5' rx='2' fill='%23d29922'/></svg>" />
+
+  <!-- ApexCharts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.49.1/apexcharts.min.js"></script>
+
+  <!-- Fonts + styles -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!--
+    Override API base URL if the dashboard is served from a different origin:
+    <script>window.SRVWATCH_API_BASE = "http://192.168.1.100:8000";</script>
+  -->
+</head>
+
+<body>
+  <div class="layout">
+
+    <!-- ── Top bar ───────────────────────────────────────────── -->
+    <header class="topbar">
+      <div class="topbar__logo">SRV<em>WATCH</em></div>
+      <div class="topbar__divider"></div>
+      <span class="topbar__pill">MULTI-SERVER METRICS</span>
+      <div class="topbar__spacer"></div>
+      <span class="topbar__pill" id="live-clock">--:--:--</span>
+      <span class="topbar__pill topbar__pill--live">LIVE</span>
+    </header>
+
+    <!-- ── Sidebar ────────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <!-- Server quick-switch tabs -->
+      <nav class="sidebar__tabs" id="server-tabs">
+        <span class="srv-tab-count">Loading servers…</span>
+      </nav>
+
+      <!-- Server cards with sparklines -->
+      <div class="sidebar__cards" id="server-cards">
+        <!-- Populated by app.js -->
+      </div>
+    </aside>
+
+    <!-- ── Main detail panel ──────────────────────────────────── -->
+    <main class="main">
+      <div id="detail-panel">
+        <div class="main-empty">
+          Select a server to begin monitoring.
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Notification banner -->
+  <div class="banner" id="banner"></div>
+
+  <!-- App entry point (ES module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

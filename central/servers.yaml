@@ -1,0 +1,28 @@
+# SRVWatch — monitored servers list
+# Add one entry per Ubuntu machine running the srvwatch-agent.
+#
+# Fields:
+#   id      — unique machine identifier (used in API URLs, no spaces)
+#   label   — human-readable display name
+#   host    — IP address or hostname reachable from this central server
+#   port    — agent port (default 9100)
+#   secret  — must match SRVWATCH_SECRET set on the agent (omit or leave blank to disable auth)
+
+servers:
+  - id: gpu-rig-01
+    label: "GPU Rig #1"
+    host: 192.168.1.10
+    port: 9100
+    secret: "changeme"
+
+  - id: workstation-02
+    label: "Workstation 2"
+    host: 192.168.1.11
+    port: 9100
+    secret: "changeme"
+
+  - id: build-server-03
+    label: "Build Server 3"
+    host: 192.168.1.12
+    port: 9100
+    secret: "changeme"
