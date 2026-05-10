@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# SRVWatch Agent — One-line installer for Ubuntu 20.04 / 22.04 / 24.04
+# simple-server-monitor Agent — One-line installer for Ubuntu 20.04 / 22.04 / 24.04
 #
 # Basic usage (run as root or with sudo):
 #   curl -fsSL https://raw.githubusercontent.com/jemdc/simple-server-monitor/master/agent/install.sh | sudo bash
