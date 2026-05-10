@@ -1,4 +1,4 @@
-# SRVWatch 🖥️
+# simple-server-monitor 🖥️
 
 A self-hosted, multi-server metrics monitoring dashboard for Ubuntu machines.
 Tracks CPU, memory, and GPU metrics (NVIDIA + AMD) with live gauges and historical charts.
