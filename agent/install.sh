@@ -13,7 +13,7 @@
 # =============================================================================
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/YOUR_USER/srvwatch}"
+REPO_URL="${REPO_URL:-https://github.com/jemdc/simple-server-monitor}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/srvwatch-agent}"
 SERVICE_USER="${SERVICE_USER:-srvwatch}"
 SRVWATCH_PORT="${SRVWATCH_PORT:-9100}"
