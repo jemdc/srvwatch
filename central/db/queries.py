@@ -1,12 +1,9 @@
 """
 Time-series queries against the TimescaleDB metrics table.
-Uses time_bucket() for efficient downsampling over longer ranges.
 
-Fixes vs v1:
-  - Removed ON CONFLICT: hypertables don't support it without a unique index
-  - Cast time_bucket() result to TEXT (ISO 8601) so JSON serialisation is
-    unambiguous and new Date(r.bucket) in the browser always works correctly
-  - Explicit int() cast on gpu_index so Postgres never infers BIGINT mismatch
+Fix: asyncpg requires a Python timedelta for time_bucket's interval argument,
+not a string like '30 seconds'. We now pass the timedelta directly and use
+a separate bucket_seconds param for the GROUP BY to_char() call.
 """
 
 from datetime import datetime, timezone, timedelta
@@ -15,14 +12,14 @@ from typing import Any
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Map range key → (lookback timedelta, bucket width string)
-RANGE_CONFIG: dict[str, tuple[timedelta, str]] = {
-    "1h":  (timedelta(hours=1),  "30 seconds"),
-    "3h":  (timedelta(hours=3),  "1 minute"),
-    "6h":  (timedelta(hours=6),  "2 minutes"),
-    "24h": (timedelta(hours=24), "5 minutes"),
-    "3d":  (timedelta(days=3),   "15 minutes"),
-    "7d":  (timedelta(days=7),   "30 minutes"),
+# Map range key → (lookback timedelta, bucket timedelta)
+RANGE_CONFIG: dict[str, tuple[timedelta, timedelta]] = {
+    "1h":  (timedelta(hours=1),  timedelta(seconds=30)),
+    "3h":  (timedelta(hours=3),  timedelta(minutes=1)),
+    "6h":  (timedelta(hours=6),  timedelta(minutes=2)),
+    "24h": (timedelta(hours=24), timedelta(minutes=5)),
+    "3d":  (timedelta(days=3),   timedelta(minutes=15)),
+    "7d":  (timedelta(days=7),   timedelta(minutes=30)),
 }
 
 
@@ -34,7 +31,7 @@ async def insert_metrics(session: AsyncSession, server_id: str, payload: dict) -
     """
     Write one poll snapshot — one system row (gpu_index=-1) + one row per GPU.
     Plain INSERT, no ON CONFLICT: TimescaleDB hypertables require a special
-    unique index for upserts; plain insert is fine at a 10-second poll interval.
+    unique index for upserts; plain insert is correct at a 10-second poll interval.
     """
     ts  = datetime.fromtimestamp(payload["timestamp"], tz=timezone.utc)
     cpu = payload["cpu"]
@@ -104,20 +101,20 @@ async def query_history(
     """
     Return time-bucketed history rows for one server.
 
-    gpu_index == -1  → system metrics (cpu_pct, mem_pct, cpu_temp_c)
-    gpu_index >= 0   → GPU metrics    (vram_pct, gpu_power_w, gpu_util_pct, gpu_temp_c)
+    asyncpg requires a Python timedelta (not a string) for time_bucket's
+    interval argument — it maps to PostgreSQL's INTERVAL type directly.
 
-    The bucket column is returned as ISO-8601 TEXT so JSON serialisation is
-    unambiguous and JavaScript's new Date() parses it correctly.
+    The bucket column is returned as an ISO-8601 TEXT string so JavaScript's
+    new Date() always parses it correctly.
     """
-    lookback, bucket_width = RANGE_CONFIG.get(range_key, RANGE_CONFIG["1h"])
+    lookback, bucket_td = RANGE_CONFIG.get(range_key, RANGE_CONFIG["1h"])
     since = _now() - lookback
 
     if int(gpu_index) == -1:
         sql = text("""
             SELECT
                 to_char(
-                    time_bucket(:bucket_width::INTERVAL, time),
+                    time_bucket(:bucket, time),
                     'YYYY-MM-DD"T"HH24:MI:SS"Z"'
                 )                AS bucket,
                 AVG(cpu_pct)     AS cpu_pct,
@@ -127,14 +124,14 @@ async def query_history(
             WHERE  server_id = :server_id
               AND  gpu_index  = -1
               AND  time       >= :since
-            GROUP  BY time_bucket(:bucket_width::INTERVAL, time)
+            GROUP  BY time_bucket(:bucket, time)
             ORDER  BY 1 ASC
         """)
     else:
         sql = text("""
             SELECT
                 to_char(
-                    time_bucket(:bucket_width::INTERVAL, time),
+                    time_bucket(:bucket, time),
                     'YYYY-MM-DD"T"HH24:MI:SS"Z"'
                 )                  AS bucket,
                 AVG(vram_pct)      AS vram_pct,
@@ -145,15 +142,15 @@ async def query_history(
             WHERE  server_id = :server_id
               AND  gpu_index  = :gpu_index
               AND  time       >= :since
-            GROUP  BY time_bucket(:bucket_width::INTERVAL, time)
+            GROUP  BY time_bucket(:bucket, time)
             ORDER  BY 1 ASC
         """)
 
     result = await session.execute(sql, {
-        "bucket_width": bucket_width,
-        "server_id":    server_id,
-        "since":        since,
-        "gpu_index":    int(gpu_index),
+        "bucket":     bucket_td,       # timedelta — asyncpg maps to INTERVAL
+        "server_id":  server_id,
+        "since":      since,
+        "gpu_index":  int(gpu_index),
     })
 
     return [dict(r) for r in result.mappings().all()]

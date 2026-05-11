@@ -9,20 +9,8 @@
 #   secret  — must match SRVWATCH_SECRET set on the agent (omit or leave blank to disable auth)
 
 servers:
-  - id: gpu-rig-01
-    label: "GPU Rig #1"
-    host: 192.168.1.10
+  - id: agent-alpha
+    label: "AgentAlpha"
+    host: 100.98.192.111
     port: 9100
-    secret: "changeme"
-
-  - id: workstation-02
-    label: "Workstation 2"
-    host: 192.168.1.11
-    port: 9100
-    secret: "changeme"
-
-  - id: build-server-03
-    label: "Build Server 3"
-    host: 192.168.1.12
-    port: 9100
-    secret: "changeme"
+    secret: "alphastrike"
