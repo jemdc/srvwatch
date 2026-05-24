@@ -191,6 +191,8 @@ def _collect_amd_via_sysfs() -> list[GpuMetrics]:
     """
     Query AMD GPUs via sysfs (no ROCm needed — works with amdgpu kernel driver).
     Reads /sys/class/drm/card*/device/ for vRAM, power, temperature, utilization.
+
+    FIX: Handle hybrid GPU setups and malformed paths gracefully.
     """
     drm_path = "/sys/class/drm"
     if not os.path.isdir(drm_path):
@@ -204,11 +206,17 @@ def _collect_amd_via_sysfs() -> list[GpuMetrics]:
         dev = os.path.join(drm_path, card, "device")
         vendor_f = os.path.join(dev, "vendor")
         if not os.path.isfile(vendor_f):
+            # Skip non-device paths gracefully (not a crash)
+            idx += 1
             continue
         try:
-            if open(vendor_f).read().strip() != "0x1002":   # AMD PCI vendor
+            vendor_raw = open(vendor_f).read().strip()
+            if vendor_raw != "0x1002":   # AMD PCI vendor
                 continue
-        except OSError:
+        except OSError as exc:
+            # Log warning but skip this path (not fatal)
+            print(f"[Agent] Skipping malformed sysfs path {dev}: {exc}")
+            idx += 1
             continue
 
         def read(rel, default=None):
