@@ -84,11 +84,8 @@ else
 fi
 
 head "Environment config"
-cat > /etc/srvwatch-agent.env <<EOF
-SRVWATCH_SECRET=${SRVWATCH_SECRET}
-SRVWATCH_LABEL=${SRVWATCH_LABEL}
-SRVWATCH_PORT=${SRVWATCH_PORT}
-EOF
+printf 'SRVWATCH_SECRET=%s\nSRVWATCH_LABEL=%s\nSRVWATCH_PORT=%s\n' \
+  "$SRVWATCH_SECRET" "$SRVWATCH_LABEL" "$SRVWATCH_PORT" > /etc/srvwatch-agent.env
 chmod 600 /etc/srvwatch-agent.env
 info "Written to /etc/srvwatch-agent.env"
 

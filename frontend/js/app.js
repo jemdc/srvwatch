@@ -348,6 +348,8 @@ function renderGpuGauges(gpus) {
 
   // Build gauge HTML once
   if (!area.dataset.rendered || area.dataset.gpuCount !== String(gpus.length)) {
+    // Destroy old charts to prevent memory leaks on GPU count changes
+    destroyAll();
     area.dataset.rendered = "1";
     area.dataset.gpuCount  = String(gpus.length);
     area.innerHTML = `<div class="gauge-label">GPU — ${gpus.length} device${gpus.length > 1 ? "s" : ""}</div>`;
