@@ -1,9 +1,11 @@
 """Tests for central/cache.py."""
 import sys
+import os
 from unittest.mock import MagicMock, patch
 import pytest
 
-sys.path.insert(0, '..')
+# Add the repo root to the path so "central" is importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from central.cache import set_cache, get_cache
 
 

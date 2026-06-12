@@ -1,10 +1,12 @@
 """Tests for central/poller.py."""
 import sys
+import os
 import asyncio
 from unittest.mock import MagicMock, patch
 import pytest
 
-sys.path.insert(0, '..')
+# Add the repo root to the path so "central" is importable
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from central.poller import poll_all
 
 
