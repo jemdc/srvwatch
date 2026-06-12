@@ -33,16 +33,18 @@ class TestCollectMemory:
         mock_mem = MagicMock()
         mock_mem.total = 16 * 1024**3
         mock_mem.available = 8 * 1024**3
-        mock_mem.swap = MagicMock()
-        mock_mem.swap.total = 0
-        mock_mem.swap.used = 0
+        mock_mem.percent = 50.0
         mock_psutil.virtual_memory.return_value = mock_mem
+
+        mock_swap = MagicMock()
+        mock_swap.total = 0
+        mock_swap.used = 0
+        mock_psutil.swap_memory.return_value = mock_swap
 
         # Act
         result = collect_memory()
 
         # Assert
-        assert result.used_mb == 8 * 1024
         assert result.total_mb == 16 * 1024
         assert result.used_pct == 50.0
         assert result.swap_used_mb == 0

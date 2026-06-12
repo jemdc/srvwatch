@@ -1,7 +1,7 @@
 """Tests for central/cache.py."""
 import sys
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 # Add the repo root to the path so "central" is importable
@@ -14,13 +14,12 @@ class TestCache:
     async def test_set_and_get_latest(self):
         """Ensure basic cache set/get works."""
         # Arrange
-        mock_redis = MagicMock()
-        mock_redis.setex.return_value = True
+        mock_redis = AsyncMock()
         mock_redis.get.return_value = '{"data": "value"}'
 
         # Act
         with patch('central.cache.get_redis', return_value=mock_redis):
-            await set_latest("test_server", {"data": "value"}, ttl=60)
+            await set_latest("test_server", {"data": "value"})
             result = await get_latest("test_server")
 
             # Assert
@@ -32,7 +31,7 @@ class TestCache:
     async def test_get_server_status_miss(self):
         """Ensure None is returned on cache miss."""
         # Arrange
-        mock_redis = MagicMock()
+        mock_redis = AsyncMock()
         mock_redis.get.return_value = None
 
         # Act
