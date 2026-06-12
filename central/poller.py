@@ -13,8 +13,8 @@ import yaml
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from cache import set_latest, set_server_status
-from db import AsyncSessionLocal, insert_metrics
+from central.cache import set_latest, set_server_status
+from central.db import AsyncSessionLocal, insert_metrics
 
 log = logging.getLogger("srvwatch.poller")
 

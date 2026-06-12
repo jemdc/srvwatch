@@ -6,30 +6,30 @@ import pytest
 
 # Add the repo root to the path so "central" is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-from central.cache import set_cache, get_cache
+from central.cache import set_latest, get_latest, get_server_status
 
 
 class TestCache:
     @pytest.mark.asyncio
-    async def test_set_and_get_cache(self):
+    async def test_set_and_get_latest(self):
         """Ensure basic cache set/get works."""
         # Arrange
         mock_redis = MagicMock()
-        mock_redis.set.return_value = True
+        mock_redis.setex.return_value = True
         mock_redis.get.return_value = '{"data": "value"}'
 
         # Act
         with patch('central.cache.get_redis', return_value=mock_redis):
-            await set_cache("test_key", {"data": "value"}, ttl=60)
-            result = await get_cache("test_key")
+            await set_latest("test_server", {"data": "value"}, ttl=60)
+            result = await get_latest("test_server")
 
             # Assert
             assert result == {"data": "value"}
-            mock_redis.set.assert_called_once()
+            mock_redis.setex.assert_called_once()
             mock_redis.get.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_get_cache_miss(self):
+    async def test_get_server_status_miss(self):
         """Ensure None is returned on cache miss."""
         # Arrange
         mock_redis = MagicMock()
@@ -37,7 +37,7 @@ class TestCache:
 
         # Act
         with patch('central.cache.get_redis', return_value=mock_redis):
-            result = await get_cache("missing_key")
+            result = await get_server_status("missing_server")
 
             # Assert
             assert result is None
