@@ -13,7 +13,7 @@ services:
     environment:
       POSTGRES_DB:       srvwatch
       POSTGRES_USER:     srvwatch
-      POSTGRES_PASSWORD: srvwatch
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-srvwatch}
     volumes:
       - tsdb_data:/var/lib/postgresql/data
     ports:
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://srvwatch:srvwatch@timescaledb:5432/srvwatch
+      DATABASE_URL: postgresql+asyncpg://srvwatch:${POSTGRES_PASSWORD:-srvwatch}@timescaledb:5432/srvwatch
       REDIS_URL:    redis://redis:6379/0
     ports:
       - "${CENTRAL_PORT:-8000}:8000"

@@ -4,22 +4,27 @@ Used by the /live endpoint so the frontend gets instant responses
 without hitting the database on every poll.
 """
 
+import asyncio
 import json
+import logging
 import os
 from typing import Optional
 
 import redis.asyncio as aioredis
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-CACHE_TTL = 60   # seconds — expire stale entries after 1 minute
+CACHE_TTL = int(os.getenv("CACHE_TTL_SECONDS", 60))
 
 _redis: Optional[aioredis.Redis] = None
+_redis_init_lock = asyncio.Lock()
 
 
 async def get_redis() -> aioredis.Redis:
     global _redis
     if _redis is None:
-        _redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
+        async with _redis_init_lock:
+            if _redis is None:
+                _redis = await aioredis.from_url(REDIS_URL, decode_responses=True)
     return _redis
 
 

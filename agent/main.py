@@ -147,7 +147,8 @@ def _collect_amd_via_rocm() -> list[GpuMetrics]:
             name = card.get("Card Series") or card.get("Card Model") or f"AMD GPU {idx}"
 
             vram_used  = float(card.get("VRAM Total Used Memory (B)", 0)) / 1024 / 1024
-            vram_total = float(card.get("VRAM Total Memory (B)", 1))      / 1024 / 1024
+            vram_bytes = card.get("VRAM Total Memory (B)")
+            vram_total = float(vram_bytes) / 1024 / 1024 if vram_bytes is not None else 0
             vram_pct   = (vram_used / vram_total * 100) if vram_total else 0.0
 
             power_draw = None
@@ -280,7 +281,7 @@ def _collect_amd_gpus() -> list[GpuMetrics]:
 
 
 def collect_gpus() -> list[GpuMetrics]:
-    gpus = [*_collect_nvidia_gpus(), *_collect_amd_gpus()]
+    gpus = sorted([*_collect_nvidia_gpus(), *_collect_amd_gpus()], key=lambda x: getattr(x, 'pci_bus_id', ''))
     for i, g in enumerate(gpus):
         g.index = i
     return gpus
@@ -300,7 +301,7 @@ def collect_cpu() -> CpuMetrics:
         pass
 
     return CpuMetrics(
-        utilization_pct=psutil.cpu_percent(interval=0.2),
+        utilization_pct=psutil.cpu_percent(interval=None),
         core_count_logical=psutil.cpu_count(logical=True),
         core_count_physical=psutil.cpu_count(logical=False) or 1,
         frequency_mhz=round(freq.current, 1) if freq else None,

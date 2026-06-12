@@ -3,6 +3,7 @@ Background poller — uses APScheduler to poll every agent on a fixed interval.
 On each tick: fetch /metrics from the agent, write to DB, update Redis cache.
 """
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -63,16 +64,15 @@ async def _poll_server(server: dict) -> None:
 
 
 async def poll_all() -> None:
-    for server in _servers:
-        await _poll_server(server)
+    await asyncio.gather(*[_poll_server(s) for s in _servers], return_exceptions=True)
 
 
 def start_poller(servers_yaml: str = "servers.yaml") -> None:
     global _servers, _scheduler
+    stop_poller()  # Stop existing scheduler if running
     _servers = load_servers(servers_yaml)
-    log.info("Poller loaded %d server(s). Interval: %ds", len(_servers), POLL_INTERVAL)
-
     _scheduler = AsyncIOScheduler()
+    log.info("Poller loaded %d server(s). Interval: %ds", len(_servers), POLL_INTERVAL)
     _scheduler.add_job(
         poll_all,
         trigger=IntervalTrigger(seconds=POLL_INTERVAL),
