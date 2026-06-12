@@ -2,7 +2,7 @@
 import sys
 import os
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 # Add the repo root to the path so "central" is importable
@@ -16,7 +16,7 @@ async def test_poll_all_gathers_results():
     # Arrange
     mock_server = {"label": "test", "host": "127.0.0.1", "port": 9100, "secret": "***"}
     with patch('central.poller._servers', [mock_server]):
-        with patch('central.poller._poll_server', new_callable=MagicMock) as mock_poll:
+        with patch('central.poller._poll_server', new_callable=AsyncMock) as mock_poll:
             mock_poll.return_value = {"status": "ok"}
 
             # Act
