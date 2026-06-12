@@ -32,6 +32,7 @@ class GpuMetrics(BaseModel):
     index: int
     name: str
     vendor: str                     # "nvidia" | "amd"
+    pci_bus_id: str                 # Stable identifier for historical data mapping
     vram_used_mb: float
     vram_total_mb: float
     vram_pct: float
@@ -99,11 +100,14 @@ def _collect_nvidia_gpus() -> list[GpuMetrics]:
             plimit_raw  = nvml_get(pynvml.nvmlDeviceGetEnforcedPowerLimit)
             temp        = nvml_get(pynvml.nvmlDeviceGetTemperature, pynvml.NVML_TEMPERATURE_GPU)
             util_obj    = nvml_get(pynvml.nvmlDeviceGetUtilizationRates)
+            pci_info    = nvml_get(pynvml.nvmlDeviceGetPciInfo)
+            pci_bus_id  = pci_info.busId if pci_info is not None else "unknown"
 
             gpus.append(GpuMetrics(
                 index=i,
                 name=name,
                 vendor="nvidia",
+                pci_bus_id=pci_bus_id,
                 vram_used_mb=round(vram_used, 1),
                 vram_total_mb=round(vram_total, 1),
                 vram_pct=round(vram_pct, 1),
@@ -174,7 +178,7 @@ def _collect_amd_via_rocm() -> list[GpuMetrics]:
                         pass
 
             gpus.append(GpuMetrics(
-                index=idx, name=name, vendor="amd",
+                index=idx, name=name, vendor="amd", pci_bus_id="",
                 vram_used_mb=round(vram_used, 1),
                 vram_total_mb=round(vram_total, 1),
                 vram_pct=round(vram_pct, 1),
@@ -260,8 +264,9 @@ def _collect_amd_via_sysfs() -> list[GpuMetrics]:
                 pass
 
         name = read("product_name") or f"AMD GPU {idx}"
+        pci_bus_id = read("pci_bus_id") or ""
         gpus.append(GpuMetrics(
-            index=idx, name=name, vendor="amd",
+            index=idx, name=name, vendor="amd", pci_bus_id=pci_bus_id,
             vram_used_mb=round(vram_used_mb, 1),
             vram_total_mb=round(vram_total_mb, 1),
             vram_pct=round(vram_pct, 1),
